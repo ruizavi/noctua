@@ -1,0 +1,23 @@
+{
+  "name": "noctua",
+  "module": "src/index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@biomejs/biome": "1.7.3",
+    "@types/bun": "latest",
+    "vitest": "1.6.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "test": "vitest",
+    "format": "bunx @biomejs/biome format --write src",
+    "lint": "bunx @biomejs/biome lint --apply src",
+    "lint:format": "bunx @biomejs/biome check --apply src"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.2.2"
+  }
+}
