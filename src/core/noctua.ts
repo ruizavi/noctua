@@ -1,4 +1,6 @@
+import { j } from "vitest/dist/reporters-yx5ZTtEV.js";
 import { type Type } from "../utils/is";
+import { generateContext } from "./request";
 import { DomainResolver } from "./resolvers/domain";
 import { RouterState } from "./state";
 
@@ -29,10 +31,20 @@ export class Noctua {
         try {
           const result = this.router.matcher(request.method, url.pathname);
 
+          const context = await generateContext({
+            params: result.params,
+            values: result.values,
+            request,
+            url,
+            hostname: server.hostname,
+            json: {},
+          });
+
           const response = await result.handler();
 
-          return new Response(JSON.stringify(response));
+          return new Response(JSON.stringify(context));
         } catch (error) {
+          console.log(error);
           return new Response("Algo salio mal");
         }
       },

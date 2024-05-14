@@ -5,7 +5,7 @@ import { Noctua } from "./core/noctua";
 
 @Controller("domain", { v: 2 })
 class Controller2 {
-  @Get(":id")
+  @Get(":id/:slug")
   get() {
     console.log("hola mundo!");
 
