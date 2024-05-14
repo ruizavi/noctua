@@ -5,13 +5,12 @@ import type { Router } from "../router";
 import { ControllerResolver } from "./controller";
 
 export class DomainResolver {
+  private declare domain: Type<any>;
   private metadata = Metadata.init();
 
-  private declare domain: Type<any>;
-  private declare controllerResolver: ControllerResolver;
+  private controllerResolver = new ControllerResolver();
 
-  constructor(domain: Type<any>, router: Router<any>) {
-    this.controllerResolver = new ControllerResolver(router);
+  constructor(domain: Type<any>) {
     this.domain = domain;
   }
 

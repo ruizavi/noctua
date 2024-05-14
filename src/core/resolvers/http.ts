@@ -2,16 +2,14 @@ import { MetadataKey } from "../../utils/enums";
 import { isNull } from "../../utils/is";
 import type { RouteDefinition } from "../../utils/types";
 import Metadata from "../metadata";
-import type { Router } from "../router";
+import { RouterState } from "../state";
 
 export class HttpResolver {
   private metadata = Metadata.init();
 
-  private declare router: Router<any>;
+  private router = RouterState.init();
 
-  constructor(router: Router<any>) {
-    this.router = router;
-  }
+  constructor() {}
 
   public resolve(target: unknown, prefix: string) {
     const data: RouteDefinition = this.metadata.get(MetadataKey.Routes, target);

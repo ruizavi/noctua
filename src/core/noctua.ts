@@ -1,15 +1,14 @@
-import { isUndefined, type Type } from "../utils/is";
+import { type Type } from "../utils/is";
 import { DomainResolver } from "./resolvers/domain";
-import { RegExpRouter, type Router } from "./router";
+import { RouterState } from "./state";
 
 export class Noctua {
   private static noctua: Noctua;
-  private declare router: Router<any>;
   private declare domain: Type<any>;
+  private router = RouterState.init();
 
   private constructor(root: Type<any>) {
     this.domain = root;
-    this.router = new RegExpRouter<any>();
   }
 
   static create(root: Type<any>) {
@@ -18,31 +17,8 @@ export class Noctua {
     return Noctua.noctua;
   }
 
-  private matcher(method: string, url: string) {
-    const [[[fn, params]], requests] = this.router.match(method, url);
-
-    const parsed: {
-      fn: any;
-      params: { [key: string | symbol]: any };
-      url?: string;
-      values?: Array<string>;
-    } = {
-      fn,
-      params,
-    };
-
-    if (!isUndefined(requests)) {
-      const [url, ...values] = requests;
-
-      parsed.url = url;
-      parsed.values = values;
-    }
-
-    return parsed;
-  }
-
   public start(port: number) {
-    const domainResolver = new DomainResolver(this.domain, this.router);
+    const domainResolver = new DomainResolver(this.domain);
 
     domainResolver.resolve();
 
@@ -51,9 +27,9 @@ export class Noctua {
         const url = new URL(request.url);
 
         try {
-          const result = this.matcher(request.method, url.pathname);
+          const result = this.router.matcher(request.method, url.pathname);
 
-          const response = await result.fn();
+          const response = await result.handler();
 
           return new Response(JSON.stringify(response));
         } catch (error) {

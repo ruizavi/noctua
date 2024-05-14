@@ -5,11 +5,7 @@ import { HttpResolver } from "./http";
 
 export class ControllerResolver {
   private metadata = Metadata.init();
-  private declare httpResolver: HttpResolver;
-
-  constructor(router: Router<any>) {
-    this.httpResolver = new HttpResolver(router);
-  }
+  private httpResolver = new HttpResolver();
 
   public resolve(controller: unknown) {
     const data: string = this.metadata.get(MetadataKey.Controller, controller);
