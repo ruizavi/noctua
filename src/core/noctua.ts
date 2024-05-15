@@ -1,8 +1,9 @@
-import { j } from "vitest/dist/reporters-yx5ZTtEV.js";
 import { type Type } from "../utils/is";
-import { generateContext } from "./request";
+import { generateContext, jsonParsed } from "./request";
 import { DomainResolver } from "./resolvers/domain";
 import { RouterState } from "./state";
+
+const METHODS = ["PUT", "PATCH", "POST"];
 
 export class Noctua {
   private static noctua: Noctua;
@@ -35,9 +36,7 @@ export class Noctua {
             params: result.params,
             values: result.values,
             request,
-            url,
-            hostname: server.hostname,
-            json: {},
+            server,
           });
 
           const response = await result.handler();

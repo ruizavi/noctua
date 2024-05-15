@@ -1,11 +1,11 @@
 import { Controller } from "./core/decorator/controller";
 import { Domain } from "./core/decorator/domain";
-import { Get } from "./core/decorator/http";
+import { Get, Post } from "./core/decorator/http";
 import { Noctua } from "./core/noctua";
 
 @Controller("domain", { v: 2 })
 class Controller2 {
-  @Get(":id/:slug")
+  @Post(":id/:slug")
   get() {
     console.log("hola mundo!");
 

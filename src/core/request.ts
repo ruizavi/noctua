@@ -10,16 +10,14 @@ export interface Context {
   path: string;
   url: string;
   hostname: string;
-  json?: unknown;
+  body?: unknown;
 }
 
 interface GenerateContext {
   params: KeyValue<number>;
   values?: Array<string>;
   request: Request;
-  url: URL;
-  hostname: string;
-  json: unknown;
+  server: Server;
 }
 
 export function assocParams(
@@ -61,28 +59,53 @@ export function assocQuery(search: string) {
   return queryParams;
 }
 
-export async function generateContext({
+export const bodyAssoc = async (req: Request) => {
+  const contentType = req.headers.get("content-type");
+
+  if (!contentType) return {};
+
+  if (contentType.includes("text/plain")) {
+    return await req.text();
+  }
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await req.formData();
+
+    const body: Record<string, any> = {};
+    for (const [key, value] of formData.entries()) {
+      body[key] = value;
+    }
+
+    return body;
+  }
+
+  if (contentType.includes("application/json")) {
+    return await req.json();
+  }
+};
+
+export const generateContext = async ({
   params,
   values,
   request,
-  url,
-  hostname,
-  json,
-}: GenerateContext): Promise<Context> {
-  const { headers, method } = request;
+  server,
+}: GenerateContext): Promise<Context> => {
+  const url = new URL(request.url);
 
   const assoc = assocParams(params, values);
-  const headersAssoc = assocHeaders(headers);
+  const headersAssoc = assocHeaders(request.headers);
   const queryParams = assocQuery(url.search);
+
+  const body = await bodyAssoc(request);
 
   return {
     params: assoc,
-    method,
+    method: request.method,
     url: url.toString(),
     path: url.pathname,
     headers: headersAssoc,
     queryParams,
-    hostname,
-    json,
+    hostname: server.hostname,
+    body,
   };
-}
+};
