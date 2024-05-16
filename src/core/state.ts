@@ -1,12 +1,13 @@
 import { isUndefined } from "../utils/is";
+import type { Handler } from "../utils/types";
 import { RegExpRouter, type Router } from "./router";
 
 export class RouterState {
-  private declare router: Router<any>;
+  private declare router: Router<Handler>;
   private static state: RouterState;
 
   private constructor() {
-    this.router = new RegExpRouter();
+    this.router = new RegExpRouter<Handler>();
   }
 
   static init() {
@@ -19,7 +20,7 @@ export class RouterState {
     const [[[handler, params]], requests] = this.router.match(method, url);
 
     const parsed: {
-      handler: any;
+      handler: Handler;
       params: { [key: string | symbol]: any };
       url?: string;
       values?: Array<string>;
@@ -38,7 +39,7 @@ export class RouterState {
     return parsed;
   }
 
-  public add(method: string, url: string, handler: any) {
+  public add(method: string, url: string, handler: Handler) {
     this.router.add(method, url, handler);
   }
 }

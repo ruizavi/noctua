@@ -17,7 +17,6 @@ export class HttpResolver {
     if (isNull(data)) return;
 
     for (const [key, { descriptor, method, path }] of Object.entries(data)) {
-      console.log({ method, path: `${prefix}${path}` });
       this.router.add(method, `${prefix}${path}`, descriptor);
     }
   }

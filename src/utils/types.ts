@@ -1,3 +1,4 @@
+import type { Context } from "../core/request";
 import type { RequestMethod } from "./enums";
 
 export interface RouteDefinition {
@@ -7,3 +8,5 @@ export interface RouteDefinition {
     method: RequestMethod;
   };
 }
+
+export type Handler = (ctx: Context) => Promise<unknown>;

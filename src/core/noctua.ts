@@ -39,9 +39,9 @@ export class Noctua {
             server,
           });
 
-          const response = await result.handler();
+          const response = await result.handler(context);
 
-          return new Response(JSON.stringify(context));
+          return new Response(JSON.stringify(response));
         } catch (error) {
           console.log(error);
           return new Response("Algo salio mal");

@@ -1,4 +1,5 @@
 import type { Server } from "bun";
+import { z, type ZodTypeAny } from "zod";
 
 type KeyValue<T = unknown> = Record<string, T>;
 
@@ -19,6 +20,10 @@ interface GenerateContext {
   request: Request;
   server: Server;
 }
+const isNumber = z.coerce.number().optional();
+const isString = z.coerce.string().optional();
+const isBoolean = z.coerce.boolean().optional();
+const isDate = z.coerce.date().optional();
 
 export function assocParams(
   params: Record<string, number>,
@@ -26,8 +31,32 @@ export function assocParams(
 ) {
   const assoc: Record<string, any> = {};
 
-  for (const [name, posicion] of Object.entries(params)) {
-    assoc[name] = values?.[posicion - 1] || null;
+  for (const [name, position] of Object.entries(params)) {
+    let validate: z.ZodOptional<ZodTypeAny> | null = null;
+    let current = name;
+
+    if (name.includes("<number>")) {
+      validate = isNumber;
+      current = name.replace("<number>", "");
+    }
+    if (name.includes("<string>")) {
+      validate = isString;
+      current = name.replace("<string>", "");
+    }
+    if (name.includes("<bool>")) {
+      validate = isBoolean;
+      current = name.replace("<bool>", "");
+    }
+    if (name.includes("<date>")) {
+      validate = isDate;
+      current = name.replace("<date>", "");
+    }
+
+    const value = validate
+      ? validate.parse(values?.[position - 1] || null)
+      : values?.[position - 1] || null;
+
+    assoc[current] = value;
   }
 
   return assoc;

@@ -2,14 +2,13 @@ import { Controller } from "./core/decorator/controller";
 import { Domain } from "./core/decorator/domain";
 import { Get, Post } from "./core/decorator/http";
 import { Noctua } from "./core/noctua";
+import type { Context } from "./core/request";
 
 @Controller("domain", { v: 2 })
 class Controller2 {
-  @Post(":id/:slug")
-  get() {
-    console.log("hola mundo!");
-
-    return "hola!!";
+  @Post(":id<number>/:slug<number>")
+  get(ctx: Context) {
+    return ctx;
   }
 }
 
