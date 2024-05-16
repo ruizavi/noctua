@@ -1,4 +1,4 @@
-import type { AnyZodObject } from "zod";
+import type { AnyZodObject, AnyZodTuple, ZodAnyDef, ZodTypeAny } from "zod";
 import { MetadataKey, RequestArgs } from "../../utils/enums";
 import Metadata from "../metadata";
 import { isUndefined, isString } from "../../utils/is";
@@ -6,7 +6,8 @@ import { isUndefined, isString } from "../../utils/is";
 function argsDecoratorFactory(type: RequestArgs): ParameterDecorator {
   return function (target, propertyKey, parameterIndex) {
     const metadata = Metadata.init();
-    const args = metadata.get(MetadataKey.Args, target, propertyKey) || {};
+    const args =
+      metadata.get(MetadataKey.Args, target.constructor, propertyKey) || {};
 
     metadata.set(
       MetadataKey.Args,
@@ -26,18 +27,19 @@ function argsDecoratorFactory(type: RequestArgs): ParameterDecorator {
 }
 
 function argsZodDecoratorFactory(type: RequestArgs) {
-  return function <T extends AnyZodObject>(
+  return function <T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
     data?: string,
     z?: T
   ): ParameterDecorator {
     const hasParamData = isUndefined(data) || isString(data);
     const paramData = hasParamData ? data : undefined;
-    const paramValidate = isUndefined(z) ? undefined : z;
+    const paramParsers = hasParamData ? z : [data, z];
 
     return function (target, propertyKey, parameterIndex) {
       const metadata = Metadata.init();
 
-      const args = metadata.get(MetadataKey.Args, target, propertyKey) || {};
+      const args =
+        metadata.get(MetadataKey.Args, target.constructor, propertyKey) || {};
 
       metadata.set(
         MetadataKey.Args,
@@ -47,7 +49,7 @@ function argsZodDecoratorFactory(type: RequestArgs) {
             type,
             index: parameterIndex,
             data: paramData,
-            validator: paramValidate,
+            validator: paramParsers,
           },
         },
         target.constructor,
@@ -64,13 +66,14 @@ export const Hostname = argsDecoratorFactory(RequestArgs.Hostname);
 export const Method = argsDecoratorFactory(RequestArgs.Method);
 
 export function Body(): ParameterDecorator;
-export function Body(data: string): ParameterDecorator;
-export function Body<T extends AnyZodObject>(z: T): ParameterDecorator;
-export function Body<T extends AnyZodObject>(
+export function Body<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
+  z: T
+): ParameterDecorator;
+export function Body<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
   data: string,
   z: T
 ): ParameterDecorator;
-export function Body<T extends AnyZodObject>(
+export function Body<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
   data?: string,
   z?: T
 ): ParameterDecorator {
@@ -78,13 +81,14 @@ export function Body<T extends AnyZodObject>(
 }
 
 export function Param(): ParameterDecorator;
-export function Param(data: string): ParameterDecorator;
-export function Param<T extends AnyZodObject>(z: T): ParameterDecorator;
-export function Param<T extends AnyZodObject>(
+export function Param<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
+  z: T
+): ParameterDecorator;
+export function Param<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
   data: string,
   z: T
 ): ParameterDecorator;
-export function Param<T extends AnyZodObject>(
+export function Param<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
   data?: string,
   z?: T
 ): ParameterDecorator {
@@ -92,27 +96,29 @@ export function Param<T extends AnyZodObject>(
 }
 
 export function Query(): ParameterDecorator;
-export function Query(data: string): ParameterDecorator;
-export function Query<T extends AnyZodObject>(z: T): ParameterDecorator;
-export function Query<T extends AnyZodObject>(
+export function Query<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
+  z: T
+): ParameterDecorator;
+export function Query<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
   data: string,
   z: T
 ): ParameterDecorator;
-export function Query<T extends AnyZodObject>(
+export function Query<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
   data?: string,
   z?: T
 ): ParameterDecorator {
   return argsZodDecoratorFactory(RequestArgs.Query)(data, z);
 }
 
-export function Headers(): ParameterDecorator;
-export function Headers(data: string): ParameterDecorator;
-export function Headers<T extends AnyZodObject>(z: T): ParameterDecorator;
-export function Headers<T extends AnyZodObject>(
+export function Header(): ParameterDecorator;
+export function Header<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
+  z: T
+): ParameterDecorator;
+export function Header<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
   data: string,
   z: T
 ): ParameterDecorator;
-export function Headers<T extends AnyZodObject>(
+export function Header<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(
   data?: string,
   z?: T
 ): ParameterDecorator {

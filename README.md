@@ -8,7 +8,9 @@ No busca ser un framework para uso en entornos de producción, es principalmente
 - [x] RegExp Router (Gracias [HonoJs](https://hono.dev/)], tome su implementación, unicamente la adapte a linter que usa el proyecto)
 - [x] Parsear contexto de la petición (body, headers, params, queryParams, status, path, url, hostname, ip principalmente)
 - [x] Crear decoradores de argumentos
-- [ ] Resolver parametros de las funciones
+- [x] Resolver parametros de las funciones
+- [x] Validación con Zod
+- [ ] Error handler
 - [ ] Implementar middlewares
 - [ ] Validaciones
 - [ ] API para decoradores custom

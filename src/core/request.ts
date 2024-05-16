@@ -11,7 +11,7 @@ export interface Context {
   path: string;
   url: string;
   hostname: string;
-  body?: unknown;
+  body?: any;
 }
 
 interface GenerateContext {
@@ -91,7 +91,7 @@ export function assocQuery(search: string) {
 export const bodyAssoc = async (req: Request) => {
   const contentType = req.headers.get("content-type");
 
-  if (!contentType) return {};
+  if (!contentType) return undefined;
 
   if (contentType.includes("text/plain")) {
     return await req.text();
