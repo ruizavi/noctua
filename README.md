@@ -6,7 +6,7 @@ No busca ser un framework para uso en entornos de producción, es principalmente
 
 - [x] Servidor HTTP Bun
 - [x] RegExp Router (Gracias [HonoJs](https://hono.dev/)], tome su implementación, unicamente la adapte a linter que usa el proyecto)
-- [ ] Parsear contexto de la petición (body, headers, params, queryParams, status, path, url, hostname, ip principalmente)
+- [x] Parsear contexto de la petición (body, headers, params, queryParams, status, path, url, hostname, ip principalmente)
 - [ ] Crear decoradores de argumentos
 - [ ] Implementar middlewares
 - [ ] Validaciones

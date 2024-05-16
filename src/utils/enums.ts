@@ -2,6 +2,7 @@ export enum MetadataKey {
   Controller,
   Routes,
   Domain,
+  Args,
 }
 
 export enum RequestMethod {
@@ -14,4 +15,16 @@ export enum RequestMethod {
   OPTIONS = "OPTIONS",
   HEAD = "HEAD",
   SEARCH = "SEARCH",
+}
+
+export enum RequestArgs {
+  Context,
+  Body,
+  Param,
+  Query,
+  Path,
+  Url,
+  Hostname,
+  Headers,
+  Method,
 }
