@@ -4,8 +4,8 @@ import Metadata from "../metadata";
 import { isUndefined, isString } from "../../utils/is";
 
 function argsDecoratorFactory(type: RequestArgs): ParameterDecorator {
-  const metadata = Metadata.init();
   return function (target, propertyKey, parameterIndex) {
+    const metadata = Metadata.init();
     const args = metadata.get(MetadataKey.Args, target, propertyKey) || {};
 
     metadata.set(
@@ -19,7 +19,7 @@ function argsDecoratorFactory(type: RequestArgs): ParameterDecorator {
           validator: undefined,
         },
       },
-      target,
+      target.constructor,
       propertyKey
     );
   };
@@ -30,13 +30,13 @@ function argsZodDecoratorFactory(type: RequestArgs) {
     data?: string,
     z?: T
   ): ParameterDecorator {
-    const metadata = Metadata.init();
-
     const hasParamData = isUndefined(data) || isString(data);
     const paramData = hasParamData ? data : undefined;
     const paramValidate = isUndefined(z) ? undefined : z;
 
     return function (target, propertyKey, parameterIndex) {
+      const metadata = Metadata.init();
+
       const args = metadata.get(MetadataKey.Args, target, propertyKey) || {};
 
       metadata.set(
@@ -50,7 +50,7 @@ function argsZodDecoratorFactory(type: RequestArgs) {
             validator: paramValidate,
           },
         },
-        target,
+        target.constructor,
         propertyKey
       );
     };
