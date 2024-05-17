@@ -3,26 +3,28 @@ import { MetadataKey, RequestArgs } from "../../utils/enums";
 import Metadata from "../metadata";
 import { isUndefined, isString } from "../../utils/is";
 
-function argsDecoratorFactory(type: RequestArgs): ParameterDecorator {
-  return function (target, propertyKey, parameterIndex) {
-    const metadata = Metadata.init();
-    const args =
-      metadata.get(MetadataKey.Args, target.constructor, propertyKey) || {};
+function argsDecoratorFactory(type: RequestArgs) {
+  return function (): ParameterDecorator {
+    return function (target, propertyKey, parameterIndex) {
+      const metadata = Metadata.init();
+      const args =
+        metadata.get(MetadataKey.Args, target.constructor, propertyKey) || {};
 
-    metadata.set(
-      MetadataKey.Args,
-      {
-        ...args,
-        [`${type}-${parameterIndex}`]: {
-          type,
-          index: parameterIndex,
-          data: undefined,
-          validator: undefined,
+      metadata.set(
+        MetadataKey.Args,
+        {
+          ...args,
+          [`${type}-${parameterIndex}`]: {
+            type,
+            index: parameterIndex,
+            data: undefined,
+            validator: undefined,
+          },
         },
-      },
-      target.constructor,
-      propertyKey
-    );
+        target.constructor,
+        propertyKey
+      );
+    };
   };
 }
 
@@ -64,6 +66,7 @@ export const Path = argsDecoratorFactory(RequestArgs.Path);
 export const Url = argsDecoratorFactory(RequestArgs.Url);
 export const Hostname = argsDecoratorFactory(RequestArgs.Hostname);
 export const Method = argsDecoratorFactory(RequestArgs.Method);
+export const Res = argsDecoratorFactory(RequestArgs.Res);
 
 export function Body(): ParameterDecorator;
 export function Body<T extends ZodTypeAny | AnyZodObject | AnyZodTuple>(

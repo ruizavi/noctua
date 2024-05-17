@@ -1,5 +1,5 @@
 import type { AnyZodObject, AnyZodTuple, ZodTypeAny } from "zod";
-import { MetadataKey } from "../../utils/enums";
+import { MetadataKey, RequestArgs } from "../../utils/enums";
 import { isNull, isUndefined } from "../../utils/is";
 import type { Args, Handler, RouteDefinition } from "../../utils/types";
 import Metadata from "../metadata";
@@ -37,7 +37,23 @@ export class HttpResolver {
       try {
         const params: Array<unknown> = [];
 
+        const headers: Record<string, string> = {};
+        let status: number | undefined = undefined;
+        let statusText: string | undefined = undefined;
+
+        const setHeaders = (key: string, value: string) =>
+          (headers[key] = value);
+        const setStatus = (code: number) => (status = code);
+        const setStatusText = (text: string) => (statusText = text);
+
+        const response = Object.assign(
+          {},
+          { setHeaders, setStatus, setStatusText }
+        );
+
         for (const { type, data, validator } of Object.values(args).reverse()) {
+          if (type === RequestArgs.Res) params.push(response);
+
           const value = this.argsContext.changekeyForValue(type, data, ctx);
 
           const val = Array.isArray(validator) ? validator[0] : validator;
@@ -47,9 +63,18 @@ export class HttpResolver {
 
         const returnedValue = await handler.apply(this, params);
 
-        return returnedValue!;
+        return {
+          file: undefined,
+          status,
+          statusText,
+          headers,
+          json: returnedValue,
+        }!;
       } catch (error) {
-        return error;
+        return {
+          status: 500,
+          json: error,
+        };
       }
     };
   }

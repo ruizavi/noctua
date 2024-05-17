@@ -1,5 +1,5 @@
 import { type Type } from "../utils/is";
-import { generateContext, jsonParsed } from "./request";
+import { generateContext } from "./request";
 import { DomainResolver } from "./resolvers/domain";
 import { RouterState } from "./state";
 
@@ -39,9 +39,9 @@ export class Noctua {
             server,
           });
 
-          const response = await result.handler(context);
+          const { json, file, ...response } = await result.handler(context);
 
-          return new Response(JSON.stringify(response));
+          return new Response(JSON.stringify(json), response);
         } catch (error) {
           console.log(error);
           return new Response("Algo salio mal");
