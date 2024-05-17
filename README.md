@@ -10,7 +10,7 @@ No busca ser un framework para uso en entornos de producción, es principalmente
 - [x] Crear decoradores de argumentos
 - [x] Resolver parametros de las funciones
 - [x] Validación con Zod
-- [ ] Error handler
+- [x] Error handler
 - [ ] Implementar middlewares
 - [ ] Validaciones
 - [ ] API para decoradores custom

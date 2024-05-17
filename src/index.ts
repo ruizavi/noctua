@@ -6,6 +6,7 @@ import { Get, Post } from "./core/decorator/http";
 import { Noctua } from "./core/noctua";
 import type { Response } from "./utils/types";
 import { SetFile, SetHeaders, SetStatus } from "./core/decorator/response";
+import { HttpError } from "./core/error";
 const schema = z.object({
   slug: z.number(),
   id: z.number(),
@@ -19,6 +20,11 @@ class Controller2 {
   get(@Param(schema) param: z.infer<typeof schema>, @Res() res: Response) {
     res.setStatusText("Hi!");
     res.setHeaders("Hello", "World!");
+
+    if (param.id === 1) {
+      throw new HttpError({ description: "Si funciona!!", status: 404 });
+    }
+
     return { param };
   }
 

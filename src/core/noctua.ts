@@ -1,4 +1,5 @@
 import { type Type } from "../utils/is";
+import { HttpError } from "./error";
 import { generateContext } from "./request";
 import { DomainResolver } from "./resolvers/domain";
 import { RouterState } from "./state";
@@ -47,7 +48,31 @@ export class Noctua {
 
           return new Response(JSON.stringify(json), response);
         } catch (error) {
-          return new Response("Algo salio mal");
+          if (error instanceof HttpError) {
+            return new Response(
+              JSON.stringify({
+                description: error.description,
+                status: error.status,
+              }),
+              {
+                status: error.status,
+              }
+            );
+          }
+
+          if (error instanceof Error) {
+            return new Response(
+              JSON.stringify({
+                description: error.message,
+                status: 500,
+              }),
+              {
+                status: 500,
+              }
+            );
+          }
+
+          return new Response("Something that's wrong");
         }
       },
       port,

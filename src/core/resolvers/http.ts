@@ -7,6 +7,7 @@ import type { Context } from "../request";
 import { RouterState } from "../state";
 import { AssocArgsContext } from "./args";
 import type { BunFile } from "bun";
+import { HttpError } from "../error";
 
 export class HttpResolver {
   private metadata = Metadata.init();
@@ -39,81 +40,72 @@ export class HttpResolver {
     > = this.metadata.get(MetadataKey.Response, target, propertyKey) || [];
 
     return async (ctx: Context) => {
-      try {
-        const params: Array<unknown> = [];
+      const params: Array<unknown> = [];
 
-        const headers: Record<string, string> = {};
-        let status: number | undefined = undefined;
-        let statusText: string | undefined = undefined;
-        let isFile: { status: boolean; data?: string } = {
-          status: false,
-          data: undefined,
-        };
+      const headers: Record<string, string> = {};
+      let status: number | undefined = undefined;
+      let statusText: string | undefined = undefined;
+      let isFile: { status: boolean; data?: string } = {
+        status: false,
+        data: undefined,
+      };
 
-        const setHeaders = (key: string, value: string) =>
-          (headers[key] = value);
-        const setStatus = (code: number) => (status = code);
-        const setStatusText = (text: string) => (statusText = text);
+      const setHeaders = (key: string, value: string) => (headers[key] = value);
+      const setStatus = (code: number) => (status = code);
+      const setStatusText = (text: string) => (statusText = text);
 
-        const response = Object.assign(
-          {},
-          { setHeaders, setStatus, setStatusText }
-        );
+      const response = Object.assign(
+        {},
+        { setHeaders, setStatus, setStatusText }
+      );
 
-        for (const [type, data] of Object.values(responseArgs)) {
-          if (type === ResponseArgs.Header && typeof data === "object") {
-            for (const [key, value] of Object.entries(data)) {
-              headers[key] = value;
-            }
-          }
-
-          if (type === ResponseArgs.Status && typeof data === "number") {
-            status = data;
-          }
-
-          if (type === ResponseArgs.File) {
-            isFile = {
-              status: true,
-              data: isString(data) ? data : undefined,
-            };
+      for (const [type, data] of Object.values(responseArgs)) {
+        if (type === ResponseArgs.Header && typeof data === "object") {
+          for (const [key, value] of Object.entries(data)) {
+            headers[key] = value;
           }
         }
 
-        for (const { type, data, validator } of Object.values(args).reverse()) {
-          if (type === RequestArgs.Res) params.push(response);
-
-          const value = this.argsContext.changekeyForValue(type, data, ctx);
-
-          const val = Array.isArray(validator) ? validator[0] : validator;
-
-          params.push(isUndefined(validator) ? value : val.parse(value));
+        if (type === ResponseArgs.Status && typeof data === "number") {
+          status = data;
         }
 
-        const returnedValue = await handler.apply(this, params);
-
-        let file: BunFile | undefined = undefined;
-
-        if (isFile.status) {
-          file =
-            typeof isFile.data === "string"
-              ? Bun.file(isFile.data)
-              : Bun.file(returnedValue);
+        if (type === ResponseArgs.File) {
+          isFile = {
+            status: true,
+            data: isString(data) ? data : undefined,
+          };
         }
-
-        return {
-          file,
-          status,
-          statusText,
-          headers,
-          json: returnedValue,
-        }!;
-      } catch (error) {
-        console.log(error);
-        return {
-          status: 500,
-          json: error,
-        };
       }
+
+      for (const { type, data, validator } of Object.values(args).reverse()) {
+        if (type === RequestArgs.Res) params.push(response);
+
+        const value = this.argsContext.changekeyForValue(type, data, ctx);
+
+        const val = Array.isArray(validator) ? validator[0] : validator;
+
+        params.push(isUndefined(validator) ? value : val.parse(value));
+      }
+
+      const returnedValue = await handler.apply(this, params);
+
+      let file: BunFile | undefined = undefined;
+
+      if (isFile.status) {
+        file =
+          typeof isFile.data === "string"
+            ? Bun.file(isFile.data)
+            : Bun.file(returnedValue);
+      }
+
+      return {
+        file,
+        status,
+        statusText,
+        headers,
+        json: returnedValue,
+      }!;
     };
   }
 }
