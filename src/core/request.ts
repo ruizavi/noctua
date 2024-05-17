@@ -125,7 +125,10 @@ export const generateContext = async ({
   const headersAssoc = assocHeaders(request.headers);
   const queryParams = assocQuery(url.search);
 
-  const body = await bodyAssoc(request);
+  let body = undefined;
+  if (["POST", "PUT", "PATCH"].some((m) => m === request.method)) {
+    body = await bodyAssoc(request);
+  }
 
   return {
     params: assoc,

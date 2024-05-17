@@ -41,9 +41,12 @@ export class Noctua {
 
           const { json, file, ...response } = await result.handler(context);
 
+          if (file) {
+            return new Response(file, response);
+          }
+
           return new Response(JSON.stringify(json), response);
         } catch (error) {
-          console.log(error);
           return new Response("Algo salio mal");
         }
       },

@@ -18,7 +18,9 @@ No busca ser un framework para uso en entornos de producción, es principalmente
 - [ ] OAuth y JWT
 - [ ] Render con Svelte
 - [ ] Fileupload
-- [ ] Response file
+- [x] Response file
+  - [ ] Validar la existencia del archivo
+  - [ ] Permitir enviar ficheros que esten alojados en base de datos (blob)
 - [ ] WS
 - [ ] CLI para generación de codigo
 - [ ] Template para proyecto

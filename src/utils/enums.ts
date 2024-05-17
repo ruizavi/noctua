@@ -3,6 +3,7 @@ export enum MetadataKey {
   Routes,
   Domain,
   Args,
+  Response,
 }
 
 export enum RequestMethod {
@@ -27,4 +28,11 @@ export enum RequestArgs {
   Hostname,
   Headers,
   Method,
+  Res,
+}
+
+export enum ResponseArgs {
+  Header,
+  Status,
+  File,
 }

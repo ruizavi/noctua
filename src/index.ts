@@ -2,9 +2,10 @@ import { z } from "zod";
 import { Context, Param, Res } from "./core/decorator/args";
 import { Controller } from "./core/decorator/controller";
 import { Domain } from "./core/decorator/domain";
-import { Post } from "./core/decorator/http";
+import { Get, Post } from "./core/decorator/http";
 import { Noctua } from "./core/noctua";
 import type { Response } from "./utils/types";
+import { SetFile, SetHeaders, SetStatus } from "./core/decorator/response";
 const schema = z.object({
   slug: z.number(),
   id: z.number(),
@@ -13,11 +14,18 @@ const schema = z.object({
 @Controller("domain", { v: 2 })
 class Controller2 {
   @Post(":id<number>/:slug<number>")
+  @SetHeaders({ good: "bye!" })
+  @SetStatus(200)
   get(@Param(schema) param: z.infer<typeof schema>, @Res() res: Response) {
-    res.setStatus(201);
     res.setStatusText("Hi!");
     res.setHeaders("Hello", "World!");
     return { param };
+  }
+
+  @Get("/file")
+  @SetFile()
+  file() {
+    return `${process.cwd()}/package.json`;
   }
 }
 
