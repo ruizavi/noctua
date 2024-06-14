@@ -1,14 +1,22 @@
 import type { AnyZodObject, AnyZodTuple, ZodTypeAny } from "zod";
-import { MetadataKey, RequestArgs, ResponseArgs } from "../../utils/enums";
+import {
+  LifeCycleState,
+  MetadataKey,
+  RequestArgs,
+  ResponseArgs,
+} from "../../utils/enums";
 import { isNull, isString, isUndefined } from "../../utils/is";
-import type { Args, Handler, RouteDefinition } from "../../utils/types";
+import type {
+  Args,
+  Handler,
+  RouteDefinition,
+  Response,
+} from "../../utils/types";
 import Metadata from "../metadata";
 import type { Context } from "../request";
 import { RouterState } from "../state";
 import { AssocArgsContext } from "./args";
 import type { BunFile } from "bun";
-import { HttpError } from "../error";
-
 export class HttpResolver {
   private metadata = Metadata.init();
   private argsContext = new AssocArgsContext();
@@ -39,73 +47,122 @@ export class HttpResolver {
       [number, string | number | Record<string, string>]
     > = this.metadata.get(MetadataKey.Response, target, propertyKey) || [];
 
-    return async (ctx: Context) => {
-      const params: Array<unknown> = [];
+    const beforeByHandler = this.metadata.get(
+      LifeCycleState.Before,
+      target,
+      propertyKey
+    );
 
-      const headers: Record<string, string> = {};
-      let status: number | undefined = undefined;
-      let statusText: string | undefined = undefined;
-      let isFile: { status: boolean; data?: string } = {
-        status: false,
-        data: undefined,
+    const afterByHandler = this.metadata.get(
+      LifeCycleState.After,
+      target,
+      propertyKey
+    );
+
+    const execLifecycle = async (
+      handlers: Array<any>,
+      ctx: Context,
+      res: Response
+    ) => {
+      let index = 0;
+      let next = async (error?: any) => {
+        if (error) {
+          throw error;
+        }
+
+        index++;
+        if (index < handlers.length) {
+          const handler = new handlers[index]();
+
+          await handler.use(ctx, next);
+        }
       };
 
-      const setHeaders = (key: string, value: string) => (headers[key] = value);
-      const setStatus = (code: number) => (status = code);
-      const setStatusText = (text: string) => (statusText = text);
+      if (!handlers) return;
 
-      const response = Object.assign(
-        {},
-        { setHeaders, setStatus, setStatusText }
-      );
+      const handler = new handlers[index]();
 
-      for (const [type, data] of Object.values(responseArgs)) {
-        if (type === ResponseArgs.Header && typeof data === "object") {
-          for (const [key, value] of Object.entries(data)) {
-            headers[key] = value;
+      await handler.use(ctx, next);
+    };
+
+    const headers: Record<string, string> = {};
+    let status: number | undefined = undefined;
+    let statusText: string | undefined = undefined;
+    let isFile: { status: boolean; data?: string } = {
+      status: false,
+      data: undefined,
+    };
+
+    const setHeaders = (key: string, value: string) => (headers[key] = value);
+    const setStatus = (code: number) => (status = code);
+    const setStatusText = (text: string) => (statusText = text);
+
+    const response = Object.assign(
+      {},
+      { setHeaders, setStatus, setStatusText }
+    );
+
+    return async (ctx: Context) => {
+      try {
+        const params: Array<unknown> = [];
+
+        execLifecycle(beforeByHandler, ctx, response);
+
+        for (const [type, data] of Object.values(responseArgs)) {
+          if (type === ResponseArgs.Header && typeof data === "object") {
+            for (const [key, value] of Object.entries(data)) {
+              headers[key] = value;
+            }
+          }
+
+          if (type === ResponseArgs.Status && typeof data === "number") {
+            status = data;
+          }
+
+          if (type === ResponseArgs.File) {
+            isFile = {
+              status: true,
+              data: isString(data) ? data : undefined,
+            };
           }
         }
 
-        if (type === ResponseArgs.Status && typeof data === "number") {
-          status = data;
+        for (const { type, data, validator } of Object.values(args).reverse()) {
+          if (type === RequestArgs.Res) params.push(response);
+
+          const value = this.argsContext.changekeyForValue(type, data, ctx);
+
+          const val = Array.isArray(validator) ? validator[0] : validator;
+
+          params.push(isUndefined(validator) ? value : val.parse(value));
         }
 
-        if (type === ResponseArgs.File) {
-          isFile = {
-            status: true,
-            data: isString(data) ? data : undefined,
-          };
+        const returnedValue = await handler.apply(this, params);
+
+        execLifecycle(afterByHandler, ctx, response);
+
+        let file: BunFile | undefined = undefined;
+
+        if (isFile.status) {
+          file =
+            typeof isFile.data === "string"
+              ? Bun.file(isFile.data)
+              : Bun.file(returnedValue);
         }
+
+        return {
+          file,
+          status,
+          statusText,
+          headers,
+          json: returnedValue,
+        }!;
+      } catch (error) {
+        console.log("si entro aqui por el error?");
+        // await execLifecycle(errors, ctx, response);
+
+        throw error;
       }
-
-      for (const { type, data, validator } of Object.values(args).reverse()) {
-        if (type === RequestArgs.Res) params.push(response);
-
-        const value = this.argsContext.changekeyForValue(type, data, ctx);
-
-        const val = Array.isArray(validator) ? validator[0] : validator;
-
-        params.push(isUndefined(validator) ? value : val.parse(value));
-      }
-
-      const returnedValue = await handler.apply(this, params);
-
-      let file: BunFile | undefined = undefined;
-
-      if (isFile.status) {
-        file =
-          typeof isFile.data === "string"
-            ? Bun.file(isFile.data)
-            : Bun.file(returnedValue);
-      }
-
-      return {
-        file,
-        status,
-        statusText,
-        headers,
-        json: returnedValue,
-      }!;
     };
   }
 }

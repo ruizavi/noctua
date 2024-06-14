@@ -4,6 +4,7 @@ export enum MetadataKey {
   Domain,
   Args,
   Response,
+  Lifecycle,
 }
 
 export enum RequestMethod {
@@ -35,4 +36,10 @@ export enum ResponseArgs {
   Header,
   Status,
   File,
+}
+
+export enum LifeCycleState {
+  Before,
+  After,
+  Error,
 }
